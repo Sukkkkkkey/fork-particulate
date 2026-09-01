@@ -1,6 +1,5 @@
 import torch
 import lightning.pytorch as pl
-from .dataloader import Demo_Dataset, Demo_Remesh_Dataset, Correspondence_Demo_Dataset
 from torch.utils.data import DataLoader
 from partfield.model.UNet.model import ResidualUNet3D
 from partfield.model.triplane import TriplaneTransformer, get_grid_coord #, sample_from_planes, Voxel2Triplane
@@ -65,6 +64,12 @@ class Model(pl.LightningModule):
                                 n_hidden_layers=6) #6
 
     def predict_dataloader(self):
+        from .dataloader import (
+            Correspondence_Demo_Dataset,
+            Demo_Dataset,
+            Demo_Remesh_Dataset,
+        )
+
         if self.cfg.remesh_demo:
             dataset = Demo_Remesh_Dataset(self.cfg)        
         elif self.cfg.correspondence_demo:

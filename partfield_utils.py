@@ -31,8 +31,12 @@ def obtain_partfield_feats(
 
 
 def get_partfield_model(device='cuda'):
+    model_dir = os.environ.get(
+        "PARTFIELD_MODEL_DIR",
+        os.path.join(os.path.dirname(__file__), "PartField", "model"),
+    )
     partfield_model = Model.load_from_checkpoint(
-        os.path.join(os.path.dirname(__file__), 'PartField', 'model', 'model_objaverse.ckpt'),
+        os.path.join(model_dir, "model_objaverse.ckpt"),
         cfg=setup(argparse.Namespace(config_file=os.path.join(os.path.dirname(__file__), 'PartField', 'configs', 'final', 'demo.yaml'), opts=[]), freeze=False)
     )
     partfield_model.eval()

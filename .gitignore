@@ -6,3 +6,4 @@ __pycache__/
 inference_outputs/
 Lightwheel_OpenSource/
 preprocessed-data/
+requirements-pytorch3d-local.txt

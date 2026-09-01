@@ -362,9 +362,17 @@ def main(args):
     model.to("cuda")
     
     # Download PartField model if needed
-    partfield_model_dir = os.path.join("PartField", "model")
+    partfield_model_dir = os.environ.get(
+        "PARTFIELD_MODEL_DIR", os.path.join("PartField", "model")
+    )
     os.makedirs(partfield_model_dir, exist_ok=True)
-    hf_hub_download(repo_id="mikaelaangel/partfield-ckpt", filename="model_objaverse.ckpt", local_dir=partfield_model_dir)
+    partfield_checkpoint = os.path.join(partfield_model_dir, "model_objaverse.ckpt")
+    if not os.path.isfile(partfield_checkpoint):
+        hf_hub_download(
+            repo_id="mikaelaangel/partfield-ckpt",
+            filename="model_objaverse.ckpt",
+            local_dir=partfield_model_dir,
+        )
     print("Models loaded successfully.")
 
     if "*" in args.input_mesh:
@@ -399,7 +407,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Particulate Inference Script")
     parser.add_argument("--input_mesh", type=str, required=True, help="Path to input mesh (.obj, .ply, or .glb)")
-    parser.add_argument("--output_dir", type=str, default="inference_outputs", help="Directory to save outputs")
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default=os.environ.get("PARTICULATE_OUTPUT_DIR", "inference_outputs"),
+        help="Directory to save outputs",
+    )
     parser.add_argument("--model_config", type=str, default="configs/particulate-B.yaml", help="Path to model config")
     parser.add_argument("--ckpt_path", type=str, default=None, help="Path to model checkpoint")
     parser.add_argument("--up_dir", type=str, default="-Z", choices=["X", "Y", "Z", "-X", "-Y", "-Z"], help="Up direction of the input mesh")

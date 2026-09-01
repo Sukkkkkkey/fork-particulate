@@ -1,10 +1,26 @@
 import numpy as np
 from typing import List, Mapping, Tuple, Dict
 from scipy.optimize import linear_sum_assignment
+# from scipy.spatial import cKDTree
 import torch
 
 from particulate.articulation_utils import articulate_points, articulate_bbox
+
 from pytorch3d.loss import chamfer_distance
+# try:
+#     from pytorch3d.loss import chamfer_distance
+# except ImportError:
+#     def chamfer_distance(points1: torch.Tensor, points2: torch.Tensor):
+#         """PyTorch3D-compatible squared L2 Chamfer fallback for batch size one."""
+#         if points1.ndim != 3 or points2.ndim != 3 or points1.shape[0] != 1 or points2.shape[0] != 1:
+#             raise ValueError("Chamfer fallback supports point clouds with batch size one")
+
+#         xyz1 = points1[0].detach().cpu().numpy()
+#         xyz2 = points2[0].detach().cpu().numpy()
+#         distance_1, _ = cKDTree(xyz2).query(xyz1, workers=-1)
+#         distance_2, _ = cKDTree(xyz1).query(xyz2, workers=-1)
+#         distance = np.mean(distance_1 ** 2) + np.mean(distance_2 ** 2)
+#         return torch.as_tensor(distance, dtype=points1.dtype), None
 
 
 def hungarian_matching_cdist(points1, part_ids1, points2, part_ids2, cost_type="cdist"):
