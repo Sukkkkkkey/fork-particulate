@@ -64,10 +64,15 @@ python infer.py --input_mesh /path/to/an/asset/in/the/evaluation/set.obj --eval 
 
 This will save a `pred.obj` and a `pred.npz` under `$output_dir/eval`. Run inference for all assets. 
 
-Then, use the `cache_gt.py` script under `particulate/data` to convert all the preprocessed ground-truth assets(refer to [DATA.md](https://github.com/RuiningLi/particulate/blob/main/DATA.md)) to the same format, serve as ground truth for later evaluation:
+Then, for each preprocessed ground-truth asset (refer to [DATA.md](DATA.md)), use `cache_points.py` with `--format eval` to uniformly sample its surface and cache the articulation metadata:
 
 ```bash
-python -m particulate.data.cache_gt --root_dir  /path/to/directory/of/preprocessed/assets/ --output_dir /path/to/save/cached/ground/truths/
+python -m particulate.data.cache_points \
+  --root /path/to/preprocessed/assets/asset_name/ \
+  --output_path /path/to/save/cached/ground/truths/asset_name.npz \
+  --num_points 100000 \
+  --ratio_sharp 0 \
+  --format eval
 ```
 
 With the GT and predicted files ready, we can obtain the evaluation results by:
@@ -77,7 +82,7 @@ python evaluate.py --gt_dir /directory/of/all/preprocessed/gt/file/ --result_dir
 ```
 
 Where:
-- **`--gt_dir`**: directory produced by `python -m particulate.data.cache_gt ...` containing cached GT `.npz` files named `<asset_name>.npz`.
+- **`--gt_dir`**: directory containing the per-asset GT files produced by `python -m particulate.data.cache_points ... --format eval`, named `<asset_name>.npz`.
 - **`--result_dir`**: root directory that contains your inference outputs for all assets. `evaluate.py` searches for prediction meshes under `**/eval/*.obj` and expects each asset to have an `eval/` folder (e.g. `results/Blender001/eval/pred.obj` + `results/Blender001/eval/pred.npz`).
 - **`--output_dir`**: directory where evaluation JSON files will be written (default: `eval_result`).
 

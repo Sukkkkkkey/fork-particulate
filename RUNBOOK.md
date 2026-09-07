@@ -9,7 +9,11 @@
 - 环境：`/home/LiuShuqi/.conda/envs/particulate`
 - 环境版本：Python 3.9.12、PyTorch 2.6.0+cu124、PyTorch3D 0.7.9（使用服务器现有 CUDA 12.4）
 - 原始数据：`/data2/LiuShuqi/data/raw/<dataset>`（只读）
+  - PartNetMobility
+  - Lightwheel-simready-asset/unzipped/Lightwheel_OpenSource
 - 处理数据：`/data2/LiuShuqi/data/processed/<dataset>`
+  - PartNetMobility_test_particulate
+  - Lightwheel_test_particulate
 - 权重、缓存、日志和结果：`/data2/LiuShuqi/output/particulate`
 
 ## 进入环境
@@ -37,7 +41,7 @@ export HTTPS_PROXY=http://127.0.0.1:8888
 
 主模型固定为 `/data2/LiuShuqi/output/particulate/checkpoints/particulate/model.pt`；PartField 权重固定为 `$PARTFIELD_MODEL_DIR/model_objaverse.ckpt`。
 
-## PyTorch3D 离线配置
+### PyTorch3D 离线配置
 
 当前 wheel 基于官方源码提交 `e73a7e7bfc580d1f9225ad9ff7d2c753c320aabd` 构建，只包含 RTX 4090 所需的 CUDA 架构 8.9。源码、wheel 和日志分别位于：
 
@@ -118,4 +122,4 @@ README 说对每个预处理资产执行 `python -m particulate.data.cache_point
 
 ## 意外发现
 
-- evaluation 生成 GT：`particulate.data.cache_gt` 已并入`particulate.data.cache_points`，执行时调用 `cache_points --format eval`
+- evaluation 生成 GT：原作者 README.md 提到的 `particulate.data.cache_gt` 已并入`particulate.data.cache_points`，执行时调用 `cache_points --format eval`
