@@ -104,6 +104,66 @@ CUDA_VISIBLE_DEVICES=2 python evaluate.py \
 该 smoke GT 从同一次预测中采样，只验证字段、匹配、关节变换和指标输出，不代表模型真实性能。
 README 说对每个预处理资产执行 `python -m particulate.data.cache_points --format eval` 生成同名 GT，但 `particulate.data.cache_gt` 实际已并入`particulate.data.cache_points`，执行时指定 `--format eval` 即可。
 
+## Hunyuan3D examples 定性评估
+
+8 个 GLB 的原始面数/10k 面配对结果位于：
+
+```bash
+ROOT=/data2/LiuShuqi/output/particulate/hunyuan3d-examples-qualitative
+```
+
+10k 面预处理使用 Blender decimate，并保留材质与 UV：
+
+```bash
+xvfb-run -a blender -b --python scripts/blender_simplify_glb.py -- \
+  --input hunyuan3d-examples/foldingchair.glb \
+  --output "$ROOT/preprocessed-10k/foldingchair.glb" \
+  --target-faces 10000
+```
+
+原始与 10k 两组使用相同推理参数。批量运行时将输入软链接分到 GPU 4、5 的目录，并将下面的 glob 分别指向对应分片：
+
+```bash
+CUDA_VISIBLE_DEVICES=4 python infer.py \
+  --input_mesh "$ROOT/inputs/original/gpu4/*.glb" \
+  --ckpt_path /data2/LiuShuqi/output/particulate/checkpoints/particulate/model.pt \
+  --output_dir "$ROOT/predictions/original" \
+  --up_dir=-Z --num_points 51200 --animation_frames 120 --eval
+```
+
+保持 strict connectivity（不要传 `--no_strict`）。`num_points=51200` 中 25,600 点为均匀表面采样；原始网格有 37,892-50,000 面，10k 网格有 9,999-10,000 面。
+
+几何与预测对比：
+
+```bash
+python scripts/analyze_hunyuan_simplification.py \
+  --original-dir hunyuan3d-examples \
+  --simplified-dir "$ROOT/preprocessed-10k" \
+  --output-dir "$ROOT/analysis" --num-points 100000
+
+python scripts/analyze_hunyuan_predictions.py \
+  --original-root "$ROOT/predictions/original" \
+  --simplified-root "$ROOT/predictions/10k" \
+  --output-dir "$ROOT/analysis" --num-points 100000
+```
+
+120 帧关节运动与 360 度相机环视渲染：
+
+```bash
+xvfb-run -a blender -b --python scripts/blender_render_orbit.py -- \
+  --input "$ROOT/predictions/original/foldingchair/animated_textured_<timestamp>.glb" \
+  --output "$ROOT/renders/original/foldingchair.mp4" \
+  --frames 120 --fps 30 --resolution 720 --samples 8
+```
+
+最终结构校验、manifest 和报告生成：
+
+```bash
+python scripts/summarize_hunyuan_qualitative.py --root "$ROOT"
+```
+
+关键输出：`$ROOT/manifest.json`、`$ROOT/analysis/REPORT.md`、`$ROOT/renders/comparison/*.mp4`。
+
 ## 数据集处理约定
 
 - 从 `/data2/LiuShuqi/data/raw/<dataset>` 读取原始 URDF/USD，不得原地修改。
@@ -119,6 +179,7 @@ README 说对每个预处理资产执行 `python -m particulate.data.cache_point
 
 代码修改
 - inference：`PartField` 的演示数据加载器改为按需导入；推理不要求安装仅用于其数据处理的 `mesh2sdf`、`tetgen`、`vtk` 和 `pymeshlab`。
+- Hunyuan3D examples：增加 Blender 10k 简化、关节运动环视渲染、几何/预测配对分析和最终校验汇总脚本。
 
 ## 意外发现
 
